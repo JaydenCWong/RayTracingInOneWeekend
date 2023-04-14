@@ -12,7 +12,7 @@ class material{
         ) const = 0;
 };
 
-class lambertian : public material{
+class lambertian : public material {
     public:
         lambertian(const color& a) : albedo(a) {}
 
@@ -21,15 +21,16 @@ class lambertian : public material{
         ) const override {
             auto scatter_direction = rec.normal + random_unit_vector();
 
-            if(scatter_direction.near_zero())
+            // Catch degenerate scatter direction
+            if (scatter_direction.near_zero())
                 scatter_direction = rec.normal;
-                
+
             scattered = ray(rec.p, scatter_direction);
+            attenuation = albedo;
             return true;
         }
 
     public:
         color albedo;
 };
-
 #endif
