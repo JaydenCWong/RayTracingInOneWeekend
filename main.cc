@@ -4,20 +4,32 @@
 
 #include <iostream>
 
-bool hit_sphere(const point3& center, double radius, const ray& r){
+double hit_sphere(const point3& center, double radius, const ray& r){
     vec3 oc = r.origin() - center;
     auto a = dot(r.direction(),r.direction());
     auto b = 2.0 * dot(oc, r.direction());
     auto c = dot(oc,oc) - radius*radius;
     auto discriminant = b*b - 4*a*c;
-    return (discriminant > 0);
+    if(discriminant < 0){
+        return -1.0;
+    }
+    else{
+        return (-b - sqrt(discriminant))/ (2.0*a);
+    }
 }
 
 color ray_color(const ray& r){
-    if(hit_sphere(point3(0,0,-1), 0.5, r))
-        return color(1,0,0);
+    point3 sphereOrigin = point3(0,0,-1);
+    double radius = 0.5;
+    auto t = hit_sphere(sphereOrigin, radius , r);
+    if(t > 0.0){
+        vec3 N = unit_vector(r.at(t) - sphereOrigin);
+        return 0.5*color(N.x() + 1, N.y() + 1, N.z() + 1);
+    }
+    
+    //background --- did not hit the sphere
     vec3 unit_direction = unit_vector(r.direction());
-    auto t = 0.5*(unit_direction.y() + 1.0);
+    t = 0.5*(unit_direction.y() + 1.0);
     //linear interpolation
     // blendedValue = (1 - t)*startValue + t*endValue
     return (1.0-t)*color(1.0,1.0,1.0) + t*color(0.5,0.7,1.0);
@@ -28,7 +40,7 @@ using namespace std;
 int main(){
     // Image
     const auto aspect_ratio = 16.0/9.0;
-    const int image_width = 1280;
+    const int image_width = 1920;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
 
     // Camera
